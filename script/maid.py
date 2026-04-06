@@ -2,11 +2,17 @@ import bpy
 from mathutils import *
 from storyboard import Storyboard
 
-
 D = bpy.data
 C = bpy.context
 
-sb = Storyboard()
-sb.write(r"C:\Users\Max\AppData\Local\osu!\Songs\beatmap-639109698540463924-a\a - a (S2VX) [a].osb")
+
+
+storyboard = Storyboard()
+
+sprite = storyboard.sprite()
+sprite.rotate(0, 1000, 0, 1)
+
+
+storyboard.write()
 
 print('Done')
