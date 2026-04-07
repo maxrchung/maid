@@ -1,3 +1,14 @@
+import sys
+import os
+
+# Add to path
+script_dir = os.path.dirname(__file__)
+if script_dir not in sys.path:
+    sys.path.append(script_dir)
+
+# Don't cache modules
+sys.dont_write_bytecode = True
+
 import bpy
 from mathutils import *
 from storyboard import Storyboard
@@ -7,12 +18,12 @@ C = bpy.context
 
 
 
-storyboard = Storyboard()
+sb = Storyboard()
 
-sprite = storyboard.sprite()
+sprite = sb.sprite('1', Vector((0,0)))
 sprite.rotate(0, 1000, 0, 1)
 
 
-storyboard.write()
+sb.write()
 
 print('Done')

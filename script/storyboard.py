@@ -36,8 +36,8 @@ class RotateCommand:
     start = round(self.start)
     end = "" if math.isclose(self.start, self.end) else round(self.end)
     start_rotate = format_number(self.start_rotate, 2)
-    end_rotate = "" if math.isclose(self.start_rotate, self.end_rotate) else format_number(self.end_scale, 2)
-    write = f" R,0,{start},{end},{start_rotate}{end_rotate}"
+    end_rotate = "" if math.isclose(self.start_rotate, self.end_rotate) else format_number(self.end_rotate, 2)
+    write = f" R,0,{start},{end},{start_rotate}{end_rotate}\n"
     file.write(write)
 
 class Sprite:
@@ -55,7 +55,7 @@ class Sprite:
     self.commands.append(command)
 
   def write(self, file):
-    write = f"4,0,0,{self.file},{format_number(self.position.x), 0},{format_number(self.position.y), 0}"
+    write = f"4,0,0,{self.file},{format_number(self.position.x, 0)},{format_number(self.position.y, 0)}\n"
     file.write(write)
 
     for command in self.commands:
@@ -65,24 +65,24 @@ class Storyboard:
   def __init__(self):
     self.sprites = []
 
-  def sprite(self):
-    sprite = Sprite()
+  def sprite(self, file, position):
+    sprite = Sprite(file, position)
     self.sprites.append(sprite)
 
     return sprite
 
   def write(self):
     with open(constants.SB_PATH, "w") as file:
-      file.write("[Events]")
-      file.write("//Background and Video events")
-      file.write("//Storyboard Layer 0 (Background)")
+      file.write("[Events]\n")
+      file.write("//Background and Video events\n")
+      file.write("//Storyboard Layer 0 (Background)\n")
 
       for sprite in self.sprites:
         sprite.write(file)
 
-      file.write("//Storyboard Layer 1 (Fail)")
+      file.write("//Storyboard Layer 1 (Fail)\n")
       file.write("//Storyboard Layer 2 (Pass)")
-      file.write("//Storyboard Layer 3 (Foreground)")
-      file.write("//Storyboard Layer 4 (Overlay)")
-      file.write("//Storyboard Sound Samples")
+      file.write("//Storyboard Layer 3 (Foreground)\n")
+      file.write("//Storyboard Layer 4 (Overlay)\n")
+      file.write("//Storyboard Sound Samples\n")
     
