@@ -6,6 +6,9 @@ def is_vector_close(v1, v2):
   return is_vector_close
 
 def format_number(number, significant_digits):
+  if math.isclose(number, 0):
+    return 0
+
   format_number = f"{number:.{significant_digits}f}".rstrip('0').rstrip('.')
   format_number.removeprefix("0.")
   return format_number
@@ -84,5 +87,5 @@ class Storyboard:
       file.write("//Storyboard Layer 2 (Pass)")
       file.write("//Storyboard Layer 3 (Foreground)\n")
       file.write("//Storyboard Layer 4 (Overlay)\n")
-      file.write("//Storyboard Sound Samples\n")
+      file.write("//Storyboard Sound Samples")
     
