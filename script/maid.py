@@ -1,28 +1,30 @@
 import sys
 import os
 
-# Add to path
+# Add folder to path so modules can be found
 script_dir = os.path.dirname(__file__)
 if script_dir not in sys.path:
     sys.path.append(script_dir)
 
-# Don't cache modules
-sys.dont_write_bytecode = True
+# Force modules to reload and bypass interpreter cache
+import importlib
+import constants
+importlib.reload(constants)
+import images
+importlib.reload(images)
+import storyboard
+importlib.reload(storyboard)
 
-import bpy
 from mathutils import *
 from storyboard import Storyboard
+from images import create_images
 
-D = bpy.data
-C = bpy.context
-
-
+create_images()
 
 sb = Storyboard()
 
-sprite = sb.sprite('1', Vector((0,0)))
-sprite.rotate(0, 1000, 0, 1)
-
+sprite = sb.sprite('b', Vector((0,0)))
+sprite.rotate(0, 999999, 0, 0)
 
 sb.write()
 
