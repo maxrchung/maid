@@ -3,16 +3,16 @@ from pathlib import Path
 import constants
 
 def create_triangle(file, color):
-  image = Image.new("RGB", (100, 100), (0, 0, 0, 0))
+  image = Image.new("RGB", (constants.SPRITE_SIZE, constants.SPRITE_SIZE), (0, 0, 0, 0))
   draw = ImageDraw.Draw(image)
-  triangle = [(0, 0), (0, 100), (100, 0)]
+  triangle = [(0, 0), (0, constants.SPRITE_SIZE), (constants.SPRITE_SIZE, 0)]
   draw.polygon(triangle, fill=color)
   path = Path(constants.SB_FOLDER) / f"{file}.png"
   image.save(path, "PNG", optimize=True)
 
 
 def create_images():
-  background = Image.new("RGB", (1,1), (0, 0, 0))
+  background = Image.new("RGB", (1, 1), (0, 0, 0))
   path = Path(constants.SB_FOLDER) / "b.png"
   background.save(path, "PNG", optimize=True)
 
