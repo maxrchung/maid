@@ -3,7 +3,7 @@ from pathlib import Path
 import constants
 
 def create_triangle(file, color):
-  image = Image.new("RGB", (constants.SPRITE_SIZE, constants.SPRITE_SIZE), (0, 0, 0, 0))
+  image = Image.new("RGBA", (constants.SPRITE_SIZE, constants.SPRITE_SIZE), (0, 0, 0, 0))
   draw = ImageDraw.Draw(image)
   triangle = [(0, 0), (0, constants.SPRITE_SIZE), (constants.SPRITE_SIZE, 0)]
   draw.polygon(triangle, fill=color)
@@ -19,4 +19,3 @@ def create_images():
   create_triangle(1, (200, 0, 0))
   create_triangle(2, (0, 200, 0))
   create_triangle(3, (0, 0, 200))
-

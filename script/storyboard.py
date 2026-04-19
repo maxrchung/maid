@@ -9,8 +9,7 @@ def format_number(number, significant_digits):
   if math.isclose(number, 0):
     return 0
 
-  format_number = f"{number:.{significant_digits}f}".rstrip('0').rstrip('.')
-  format_number.removeprefix("0.")
+  format_number = f"{number:.{significant_digits}f}".rstrip('0').rstrip('.').removeprefix("0")
   return format_number
 
 class ScaleCommand:
@@ -23,9 +22,9 @@ class ScaleCommand:
   def write(self, file):
     start = round(self.start)
     end = "" if math.isclose(self.start, self.end) else round(self.end)
-    start_scale = f"{format_number(self.start_scale.x, 1),format_number(self.start_scale.y, 1)}"
+    start_scale = f"{format_number(self.start_scale.x, 1)},{format_number(self.start_scale.y, 1)}"
     end_scale = "" if is_vector_close(self.start_scale, self.end_scale) else f",{format_number(self.end_scale.x, 1),format_number(self.end_scale.y, 1)}"
-    write = f" V,0,{start},{end},{start_scale}{end_scale}"
+    write = f" V,0,{start},{end},{start_scale}{end_scale}\n"
     file.write(write)
 
 class RotateCommand:
