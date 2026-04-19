@@ -1,12 +1,14 @@
 import sys
 import os
 
-# Add folder to path so modules can be found
+# Add folder to path so modules can be found. This is pretty stupid and maybe
+# reason enough to look into add-on development instead.
 script_dir = os.path.dirname(__file__)
 if script_dir not in sys.path:
     sys.path.append(script_dir)
 
-# Force modules to reload and bypass interpreter cache
+# Force modules to reload and bypass interpreter cache. This is pretty stupid
+# and maybe reason enough to look into add-on development instead.
 import importlib
 import constants
 importlib.reload(constants)
