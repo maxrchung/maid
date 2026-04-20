@@ -12,8 +12,8 @@ if script_dir not in sys.path:
 import importlib
 import constants
 importlib.reload(constants)
-import images
-importlib.reload(images)
+import materials
+importlib.reload(materials)
 import storyboard
 importlib.reload(storyboard)
 import triangles
@@ -21,10 +21,10 @@ importlib.reload(triangles)
 
 from mathutils import *
 from storyboard import Storyboard
-from images import create_images
+from materials import create_materials
 from triangles import create_triangles
 
-create_images()
+materials = create_materials()
 
 storyboard = Storyboard()
 
