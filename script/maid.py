@@ -16,13 +16,13 @@ import materials
 importlib.reload(materials)
 import storyboard
 importlib.reload(storyboard)
-import triangles
-importlib.reload(triangles)
+import render
+importlib.reload(render)
 
 from mathutils import *
 from storyboard import Storyboard
 from materials import create_materials
-from triangles import create_triangles
+from render import render_triangle
 
 materials = create_materials()
 
@@ -31,9 +31,9 @@ storyboard = Storyboard()
 sprite = storyboard.sprite('b', Vector((0, 0)))
 sprite.rotate(0, 999999, 0, 0)
 
-create_triangles(storyboard, (Vector((0, 0)), Vector((100, -50)), Vector((400, 100))))
-create_triangles(storyboard, (Vector((400, 400)), Vector((0, 200)), Vector((600, 600))))
-create_triangles(storyboard, (Vector((80, 300)), Vector((55, 200)), Vector((50, 300))))
+render_triangle(storyboard, (Vector((0, 0)), Vector((100, -50)), Vector((400, 100))))
+render_triangle(storyboard, (Vector((400, 400)), Vector((0, 200)), Vector((600, 600))))
+render_triangle(storyboard, (Vector((80, 300)), Vector((55, 200)), Vector((50, 300))))
 
 storyboard.write()
 

@@ -13,7 +13,6 @@ def reorder_biggest_angle(A, B, C):
         return A, B, C
     else:
         return B, A, C
-    
 
 def reorder_clockwise(A, B, C):
     cross = (B - A).cross(C - A)
@@ -36,7 +35,7 @@ def create_sprite(storyboard, T):
     sprite.rotate(0, 1000, rotate, rotate)
     sprite.scale(0, 0, scale, scale)
 
-def create_triangles(storyboard, T):
+def render_triangle(storyboard, T):
     A, B, C = T
 
     # Reorder such that first point has the largest angle, or put in another
