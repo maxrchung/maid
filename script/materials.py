@@ -6,13 +6,13 @@ import os
 import glob
 
 def delete_images():
-   pngs = glob.glob(os.path.join(constants.SB_FOLDER, "*.png"))
+   pngs = glob.glob(os.path.join(constants.STORYBOARD_FOLDER, "*.png"))
    for png in pngs:
       os.remove(png)
 
 def create_background():
     background = Image.new("RGB", (1, 1), (0, 0, 0))
-    path = Path(constants.SB_FOLDER) / "b.png"
+    path = Path(constants.STORYBOARD_FOLDER) / "b.png"
     background.save(path, "PNG", optimize=True)
 
 def create_triangle(file, color):
@@ -25,7 +25,7 @@ def create_triangle(file, color):
      int(color[1] * 255),
      int(color[2] * 255)
   ))
-  path = Path(constants.SB_FOLDER) / f"{file}.png"
+  path = Path(constants.STORYBOARD_FOLDER) / f"{file}.png"
   image.save(path, "PNG", optimize=True)
 
 def create_materials():

@@ -8,8 +8,12 @@ def is_vector_close(v1, v2):
 def format_number(number, significant_digits):
   if math.isclose(number, 0):
     return 0
-
+  
   format_number = f"{number:.{significant_digits}f}".rstrip('0').rstrip('.').removeprefix("0")
+
+  if format_number == "":
+    return 0
+
   return format_number
 
 class ScaleCommand:
@@ -74,7 +78,7 @@ class Storyboard:
     return sprite
 
   def write(self):
-    with open(constants.SB_PATH, "w") as file:
+    with open(constants.STORYBOARD_PATH, "w") as file:
       file.write("[Events]\n")
       file.write("//Background and Video events\n")
       file.write("//Storyboard Layer 0 (Background)\n")
