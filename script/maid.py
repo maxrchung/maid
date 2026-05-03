@@ -75,26 +75,46 @@ while frame <= frame_end:
         world_matrix = object.matrix_world
 
         for triangle in mesh.loop_triangles:
-            vertices = []
+            # Cull if normal points away from camera
+            world_normal = (world_matrix.to_3x3() @ triangle.normal).normalized()
+            to_camera = (camera.location - world_matrix @ mesh.vertices[triangle.vertices[0]].co).normalized()
+            if world_normal.dot(to_camera) <= 0:
+                continue
 
+            vertices = []
             for i in triangle.vertices:
                 world_vertex = world_matrix @ mesh.vertices[i].co
 
                 # Bottom left origin where x and y are 0 to 1
                 camera_vertex = world_to_camera_view(scene, camera, world_vertex)
+                vertices.append(camera_vertex)
 
-                x = camera_vertex.x * constants.STORYBOARD_SIZE.x + constants.STORYBOARD_OFFSET.x
-                y = (1 - camera_vertex.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
-                vertices.append(Vector((x, y)))
+            # Cull if all behind camera
+            if all(vertex.z <= 0 for vertex in vertices):
+                continue
 
-            render_triangle(storyboard, vertices)
+            # Cull if all outside edge
+            if (all(vertex.x >= 1 for vertex in vertices) or
+                all(vertex.x <= 0 for vertex in vertices) or
+                all(vertex.y >= 1 for vertex in vertices) or
+                all(vertex.y <= 0 for vertex in vertices)):
+                continue
+
+            # Transform to osu! coordinates
+            osu_triangle = []
+            for vertex in vertices:
+                x = vertex.x * constants.STORYBOARD_SIZE.x + constants.STORYBOARD_OFFSET.x
+                y = (1 - vertex.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
+                osu_triangle.append(Vector((x, y)))
+
+            render_triangle(storyboard, osu_triangle)
 
     frame += 1
 
 
-render_triangle(storyboard, (Vector((0, 0)), Vector((100, -50)), Vector((400, 100))))
-render_triangle(storyboard, (Vector((400, 400)), Vector((0, 200)), Vector((600, 600))))
-render_triangle(storyboard, (Vector((80, 300)), Vector((55, 200)), Vector((50, 300))))
+# render_triangle(storyboard, (Vector((0, 0)), Vector((100, -50)), Vector((400, 100))))
+# render_triangle(storyboard, (Vector((400, 400)), Vector((0, 200)), Vector((600, 600))))
+# render_triangle(storyboard, (Vector((80, 300)), Vector((55, 200)), Vector((50, 300))))
 
 storyboard.write()
 
