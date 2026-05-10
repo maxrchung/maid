@@ -9,7 +9,10 @@ def format_number(number, significant_digits):
   if math.isclose(number, 0):
     return 0
   
-  format_number = f"{number:.{significant_digits}f}".rstrip('0').rstrip('.').removeprefix("0")
+  format_number = f"{number:.{significant_digits}f}"
+  
+  if significant_digits > 0:
+    format_number = format_number.rstrip('0').rstrip('.').lstrip('0')
 
   if format_number == "":
     return 0
