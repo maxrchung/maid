@@ -107,7 +107,13 @@ while frame <= frame_end:
                 y = (1 - vertex.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
                 osu_triangle.append(Vector((x, y)))
 
-            render_triangle(storyboard, osu_triangle)
+            # Get material file
+            material = object.material_slots[triangle.material_index].material
+            if not material:
+                continue
+            file = materials[material.name]
+
+            render_triangle(storyboard, osu_triangle, file)
 
     frame += 1
 

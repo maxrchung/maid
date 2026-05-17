@@ -11,7 +11,7 @@ def delete_images():
       os.remove(png)
 
 def create_background():
-    background = Image.new("RGB", (1, 1), (0, 0, 0))
+    background = Image.new("RGB", (1, 1), (67, 68, 69))
     path = Path(constants.STORYBOARD_FOLDER) / "b.png"
     background.save(path, "PNG", optimize=True)
 

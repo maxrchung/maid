@@ -29,8 +29,8 @@ class ScaleCommand:
   def write(self, file):
     start = round(self.start)
     end = "" if math.isclose(self.start, self.end) else round(self.end)
-    start_scale = f"{format_number(self.start_scale.x, 1)},{format_number(self.start_scale.y, 1)}"
-    end_scale = "" if is_vector_close(self.start_scale, self.end_scale) else f",{format_number(self.end_scale.x, 1),format_number(self.end_scale.y, 1)}"
+    start_scale = f"{format_number(self.start_scale.x, 2)},{format_number(self.start_scale.y, 2)}"
+    end_scale = "" if is_vector_close(self.start_scale, self.end_scale) else f",{format_number(self.end_scale.x, 2),format_number(self.end_scale.y, 2)}"
     write = f" V,0,{start},{end},{start_scale}{end_scale}\n"
     file.write(write)
 
