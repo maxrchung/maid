@@ -39,8 +39,8 @@ def render_triangle(storyboard, T, file):
     A, B, C = T
 
     # Reorder such that first point has the largest angle, or put in another
-    # way, the line away from the point is the longest. This addresses an issue
-    # with obtuse triangle projecting outside of the triangle.
+    # way, the line opposite of the point is the longest. This addresses an
+    # issue with obtuse triangle projecting outside of the triangle.
     A, B, C = reorder_biggest_angle(A, B, C)
 
     # Project point across from first point

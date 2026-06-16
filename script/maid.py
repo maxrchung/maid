@@ -21,10 +21,47 @@ importlib.reload(render)
 
 import bpy
 from mathutils import *
+from mathutils.geometry import intersect_tri_tri_2d
 from bpy_extras.object_utils import world_to_camera_view
 from storyboard import Storyboard
 from materials import create_materials
 from render import render_triangle
+
+def order_triangles(triangles):
+    # Order in world coordinates using topo sort
+    graph = {i: [] for i in range(len(triangles))}
+    indegree = {i: 0 for i in range(len(triangles))}
+
+    for i in range(len(triangles)):
+        for j in range(i + 1, len(triangles)):
+            t1, t2 = triangles[i], triangles[j]
+
+            if not intersect_tri_tri_2d(t1[0], t1[1], t1[2], t2[0], t2[1], t2[2]):
+                continue
+
+            if t1 > t2
+                graph[t1].append(t2)
+                indegree[t2] = indegree[t2] + 1
+
+
+    order = []
+        
+    while indegree
+        smallest_indegree = min(indegree.values())
+            
+        if smallest_indegree > 0
+            there's a loop btw       
+    
+        for key in list(indegree.keys())
+            if indegree[key] > smallest_indegree
+                continue
+                
+            order.append(key)
+
+            for dep in graph[key]
+                indegree[dep] = indegree[dep] - 1
+
+            del indegree[key]
 
 materials = create_materials()
 
@@ -61,54 +98,57 @@ while frame <= frame_end:
             continue
         
         # Only consider objects that have some scale value
-        if object.scale.x == 0.0:
+        if object.scale.x == 0.0 or object.scale.y == 0.0 or object.scale.z == 0.0:
             continue
         
         objects.append(object)
-
-    triangles = []
 
     for object in objects:
         mesh = object.data
         mesh.calc_loop_triangles()
 
         world_matrix = object.matrix_world
+        world_matrix_3x3 = world_matrix.to_3x3()
 
-        for triangle in mesh.loop_triangles:
+        world_triangles = []
+        for loop_triangle in mesh.loop_triangles:
             # Cull if normal points away from camera
-            world_normal = (world_matrix.to_3x3() @ triangle.normal).normalized()
-            to_camera = (camera.location - world_matrix @ mesh.vertices[triangle.vertices[0]].co).normalized()
+            world_normal = (world_matrix_3x3 @ loop_triangle.normal).normalized()
+            to_camera = (camera.location - world_matrix @ mesh.vertices[loop_triangle.vertices[0]].co).normalized()
             if world_normal.dot(to_camera) <= 0:
                 continue
 
-            vertices = []
-            for i in triangle.vertices:
-                world_vertex = world_matrix @ mesh.vertices[i].co
+            world_triangle = [world_matrix @ mesh.vertices[i].co for i in loop_triangle.vertices]
+            world_triangles.append(world_triangle)
 
-                # Bottom left origin where x and y are 0 to 1
-                camera_vertex = world_to_camera_view(scene, camera, world_vertex)
-                vertices.append(camera_vertex)
+        ordered_triangles = order_triangles(world_triangles)
+        
+        for world_triangle in ordered_triangles:
+            # Bottom left origin where x and y are 0 to 1
+            camera_triangle = [world_to_camera_view(scene, camera, v) for v in world_triangle]
 
             # Cull if all behind camera
-            if all(vertex.z <= 0 for vertex in vertices):
+            if all(vertex.z <= 0 for vertex in camera_triangle):
                 continue
 
             # Cull if all outside edge
-            if (all(vertex.x >= 1 for vertex in vertices) or
-                all(vertex.x <= 0 for vertex in vertices) or
-                all(vertex.y >= 1 for vertex in vertices) or
-                all(vertex.y <= 0 for vertex in vertices)):
+            if (all(vertex.x >= 1 for vertex in camera_triangle) or
+                all(vertex.x <= 0 for vertex in camera_triangle) or
+                all(vertex.y >= 1 for vertex in camera_triangle) or
+                all(vertex.y <= 0 for vertex in camera_triangle)):
                 continue
 
             # Transform to osu! coordinates
-            osu_triangle = []
-            for vertex in vertices:
-                x = vertex.x * constants.STORYBOARD_SIZE.x + constants.STORYBOARD_OFFSET.x
-                y = (1 - vertex.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
-                osu_triangle.append(Vector((x, y)))
+            osu_triangle = [
+                Vector((
+                    v.x * constants.STORYBOARD_SIZE.x + constants.STORYBOARD_OFFSET.x,
+                    (1 - v.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
+                ))
+                for v in camera_triangle
+            ]
 
             # Get material file
-            material = object.material_slots[triangle.material_index].material
+            material = object.material_slots[loop_triangle.material_index].material
             if not material:
                 continue
             file = materials[material.name]
