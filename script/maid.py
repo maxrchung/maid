@@ -32,15 +32,13 @@ def is_a_behind_b(a, b):
         p = intersect_point_tri(v, b[0], b[1], b[2])
 
         if p:
-            return v.z >= p.z
+            return v.z <= p.z
     
     for v in b:
-        p = intersect_point_tri(v, b[0], b[1], b[2])
+        p = intersect_point_tri(v, a[0], a[1], a[2])
 
         if p:
-            return v.z <= p.z
-        
-    return None
+            return v.z >= p.z
 
 def order_triangles(triangles):
     # Order in world coordinates using topo sort
@@ -70,7 +68,7 @@ def order_triangles(triangles):
             if indegree[key] > smallest_indegree:
                 continue
                 
-            ordered.append(key)
+            ordered.append(triangles[key])
             del indegree[key]
 
             for dep in graph[key]:
