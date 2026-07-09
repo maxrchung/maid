@@ -47,7 +47,7 @@ def order_triangles(triangles):
 
     for i in range(len(triangles)):
         for j in range(i + 1, len(triangles)):
-            a, b = triangles[i], triangles[j]
+            a, b = triangles[i][0], triangles[j][0]
 
             if not intersect_tri_tri_2d(a[0].xy, a[1].xy, a[2].xy, b[0].xy, b[1].xy, b[2].xy):
                 continue
@@ -124,6 +124,7 @@ while frame <= frame_end:
         
         objects.append(object)
 
+    triangles = []
     for object in objects:
         mesh = object.data
         mesh.calc_loop_triangles()
@@ -132,7 +133,6 @@ while frame <= frame_end:
         world_matrix_3x3 = world_matrix.to_3x3()
         view_matrix = camera.matrix_world.inverted()
 
-        camera_triangles = []
         for loop_triangle in mesh.loop_triangles:
             # Cull if normal points away from camera
             world_normal = (world_matrix_3x3 @ loop_triangle.normal).normalized()
@@ -156,28 +156,28 @@ while frame <= frame_end:
                 all(v.y <= 0 for v in camera_triangle)):
                 continue
 
-            camera_triangles.append(camera_triangle)
-
-        # Order back to front
-        ordered_triangles = order_triangles(camera_triangles)
-        
-        for ordered_triangle in ordered_triangles:
-            # Transform to osu! coordinates
-            osu_triangle = [
-                Vector((
-                    v.x * constants.STORYBOARD_SIZE.x + constants.STORYBOARD_OFFSET.x,
-                    (1 - v.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
-                ))
-                for v in ordered_triangle
-            ]
-
             # Get material file
             material = object.material_slots[loop_triangle.material_index].material
             if not material:
                 continue
             file = materials[material.name]
 
-            render_triangle(storyboard, osu_triangle, file)
+            triangles.append((camera_triangle, file))
+
+    # Order back to front
+    ordered = order_triangles(triangles)
+        
+    for triangle, file in ordered:
+        # Transform to osu! coordinates
+        osu_triangle = [
+            Vector((
+                v.x * constants.STORYBOARD_SIZE.x + constants.STORYBOARD_OFFSET.x,
+                (1 - v.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
+            ))
+            for v in triangle
+        ]
+
+        render_triangle(storyboard, osu_triangle, file)
 
     frame += 1
 
