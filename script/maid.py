@@ -27,6 +27,13 @@ from storyboard import Storyboard
 from materials import create_materials
 from render import render_triangle
 
+def has_shared_vertex(a, b):
+    for va in a:
+        for vb in b:
+            if (va - vb).length < constants.EPSILON:
+                return True
+    return False
+
 def is_a_behind_b(a, b):
     for v in a:
         p = intersect_point_tri(v, b[0], b[1], b[2])
@@ -52,6 +59,9 @@ def order_triangles(triangles):
             if not intersect_tri_tri_2d(a[0].xy, a[1].xy, a[2].xy, b[0].xy, b[1].xy, b[2].xy):
                 continue
 
+            if has_shared_vertex(a, b):
+                continue
+
             if is_a_behind_b(a, b):
                 graph[j].append(i)
                 indegree[i] += 1
@@ -60,7 +70,9 @@ def order_triangles(triangles):
                 indegree[j] += 1
 
     ordered = []
-        
+    
+    cycle = 0
+    no_front = 0
     while indegree:
         smallest_indegree = min(indegree.values())
             
@@ -73,14 +85,17 @@ def order_triangles(triangles):
 
             for dep in graph[key]:
                 if dep not in indegree:
-                    print("3-way cycle")
+                    cycle += 1
                     continue
 
                 indegree[dep] -= 1
 
             if smallest_indegree > 0:
-                print("smallest_indegree > 0")
+                no_front += 1
                 break
+
+    print(f"cycle: {cycle}")
+    print(f"no_front: {no_front}")
 
     return ordered
 
