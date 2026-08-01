@@ -34,18 +34,106 @@ def has_shared_vertex(a, b):
                 return True
     return False
 
-def is_a_behind_b(a, b):
-    for v in a:
-        p = intersect_point_tri(v, b[0], b[1], b[2])
+def ensure_ccw(tri):
+    """
+    tri: list/tuple of 3 Vector3 (x, y, z).
+    Returns a new list of 3 Vector3 in CCW order (as seen looking down -Z,
+    i.e. standard screen/camera-space XY convention).
+    If already CCW, returns tri unchanged (same vertex objects, same order).
+    If CW, returns a copy with two vertices swapped to flip winding.
+    Degenerate (zero-area) triangles are returned unchanged.
+    """
+    a, b, c = tri
 
-        if p:
-            return v.z <= p.z
-    
-    for v in b:
-        p = intersect_point_tri(v, a[0], a[1], a[2])
+    """Cross of ab and ac
+    Positive = CCW, negative = CW, zero = degenerate/collinear."""
+    cross = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)
 
-        if p:
-            return v.z >= p.z
+    if cross > 0:
+        return [a, b, c]
+    elif cross < 0:
+        # Swap any two vertices to flip winding order
+        return [a, c, b]
+    else:
+        # Degenerate triangle (collinear points) — no valid winding to fix
+        return [a, b, c]
+
+"""
+Sutherland-Hodgman algorithm
+Clip `subject` polygon against `clip` polygon (both convex, CCW, 2D).
+Returns list of Vector2 representing the intersection polygon (may be empty).
+"""
+def find_intersection_polygon(subject, clip):
+
+    def inside(p, a, b):
+        # True if p is on the left side of edge a->b (CCW convex clip)
+        edge = b - a
+        return edge.cross(p - a) >= 0
+
+    def intersect(p1, p2, a, b):
+        edge_ab = b - a
+        edge_p = p2 - p1
+        denom = edge_ab.cross(edge_p)
+        if abs(denom) < 1e-12:
+            return p2  # parallel; fallback
+        t = (a - p1).cross(edge_ab) / denom
+        return p1 + edge_p * t
+
+    output = subject[:]
+    for i in range(len(clip)):
+        if not output:
+            break
+
+        a = clip[i]
+        b = clip[(i + 1) % len(clip)]
+        input_list = output
+        output = []
+
+        for j in range(len(input_list)):
+            curr = input_list[j]
+            prev = input_list[j - 1]
+            curr_in = inside(curr, a, b)
+            prev_in = inside(prev, a, b)
+
+            if curr_in:
+                if not prev_in:
+                    output.append(intersect(prev, curr, a, b))
+                output.append(curr)
+
+            elif prev_in:
+                output.append(intersect(prev, curr, a, b))
+
+    return output
+
+# This is a simplified calculation and doesn't get the centroid, which needs
+# to take into account point weight. Not sure if this'll lead to any
+# miscalculations though.
+def find_sample_point(polygon):
+    cx = sum(x for x, y in polygon) / len(polygon)
+    cy = sum(y for x, y in polygon) / len(polygon)
+    return (cx, cy)
+
+"""
+tri: 3 Vector3 (x, y, z) in CCW screen/camera space.
+sample: Vector2 point known to be inside tri (2D).
+Returns interpolated z at `sample` via barycentric weights.
+"""
+def find_barycentric_z(tri, sample):
+    a, b, c = tri
+    a2, b2, c2 = Vector((a.x, a.y)), Vector((b.x, b.y)), Vector((c.x, c.y))
+
+    def area2(p, q, r):
+        return (q - p).cross(r - p)
+
+    total = area2(a2, b2, c2)
+    if abs(total) < 1e-12:
+        return None  # degenerate triangle
+
+    w_a = area2(sample, b2, c2) / total
+    w_b = area2(sample, c2, a2) / total
+    w_c = 1.0 - w_a - w_b
+
+    return w_a * a.z + w_b * b.z + w_c * c.z
 
 def order_triangles(triangles):
     # Order in world coordinates using topo sort
@@ -59,10 +147,26 @@ def order_triangles(triangles):
             if not intersect_tri_tri_2d(a[0].xy, a[1].xy, a[2].xy, b[0].xy, b[1].xy, b[2].xy):
                 continue
 
+            # Maybe this could miss some cases
             if has_shared_vertex(a, b):
                 continue
 
-            if is_a_behind_b(a, b):
+            a_ccw = ensure_ccw(a)
+            b_ccw = ensure_ccw(b)
+
+            a_2d = [Vector((v.x, v.y)) for v in a_ccw]
+            b_2d = [Vector((v.x, v.y)) for v in b_ccw]
+
+            intersection = find_intersection_polygon(a_2d, b_2d)
+            if len(intersection) < 3:
+                return None  # degenerate/point/edge-only overlap
+
+            sample = find_sample_point(intersection)
+
+            a_z = find_barycentric_z(a_ccw, sample)
+            b_z = find_barycentric_z(b_ccw, sample)
+
+            if a_z > b_z:
                 graph[j].append(i)
                 indegree[i] += 1
             else:
