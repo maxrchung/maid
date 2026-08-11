@@ -64,7 +64,6 @@ Clip `subject` polygon against `clip` polygon (both convex, CCW, 2D).
 Returns list of Vector2 representing the intersection polygon (may be empty).
 """
 def find_intersection_polygon(subject, clip):
-
     def inside(p, a, b):
         # True if p is on the left side of edge a->b (CCW convex clip)
         edge = b - a
@@ -73,7 +72,7 @@ def find_intersection_polygon(subject, clip):
     def intersect(p1, p2, a, b):
         edge_ab = b - a
         edge_p = p2 - p1
-        denom = edge_ab.cross(edge_p)
+        denom = edge_p.cross(edge_ab)
         if abs(denom) < 1e-12:
             return p2  # parallel; fallback
         t = (a - p1).cross(edge_ab) / denom
@@ -111,7 +110,7 @@ def find_intersection_polygon(subject, clip):
 def find_sample_point(polygon):
     cx = sum(x for x, y in polygon) / len(polygon)
     cy = sum(y for x, y in polygon) / len(polygon)
-    return (cx, cy)
+    return Vector((cx, cy))
 
 """
 tri: 3 Vector3 (x, y, z) in CCW screen/camera space.
@@ -159,14 +158,14 @@ def order_triangles(triangles):
 
             intersection = find_intersection_polygon(a_2d, b_2d)
             if len(intersection) < 3:
-                return None  # degenerate/point/edge-only overlap
+                continue  # degenerate/point/edge-only overlap
 
             sample = find_sample_point(intersection)
 
             a_z = find_barycentric_z(a_ccw, sample)
             b_z = find_barycentric_z(b_ccw, sample)
 
-            if a_z > b_z:
+            if a_z < b_z:
                 graph[j].append(i)
                 indegree[i] += 1
             else:
