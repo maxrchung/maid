@@ -134,11 +134,13 @@ def find_barycentric_z(tri, sample):
 
     return w_a * a.z + w_b * b.z + w_c * c.z
 
+# Orders triangles from back to front using topological sort
 def order_triangles(triangles):
     # Order in world coordinates using topo sort
     graph = {i: [] for i in range(len(triangles))}
     indegree = {i: 0 for i in range(len(triangles))}
 
+    # Build graphs
     for i in range(len(triangles)):
         for j in range(i + 1, len(triangles)):
             a, b = triangles[i][0], triangles[j][0]
@@ -173,7 +175,8 @@ def order_triangles(triangles):
                 indegree[j] += 1
 
     ordered = []
-    
+
+    # Sort with graph
     cycle = 0
     no_front = 0
     while indegree:
@@ -182,8 +185,9 @@ def order_triangles(triangles):
         for key in list(indegree.keys()):
             if indegree[key] > smallest_indegree:
                 continue
-                
+
             ordered.append(triangles[key])
+
             del indegree[key]
 
             for dep in graph[key]:
@@ -201,6 +205,23 @@ def order_triangles(triangles):
     print(f"no_front: {no_front}")
 
     return ordered
+
+# Occlude triangles that are fully behind by triangles in front
+def occlude_triangles(triangles):
+    occluded = []
+
+    # Use reversed() to go from front -> back
+    for triangle in reversed(triangles):
+        # Skip triangle if a triangle in front fully covers it
+        if any(
+            all(intersect_point_tri(v, occlude[0], occlude[1], occlude[2]) for v in triangle)
+            for occlude in occluded
+        ):
+            continue
+
+        occluded.append(triangle)
+
+    return occluded
 
 materials = create_materials()
 
@@ -282,10 +303,11 @@ while frame <= frame_end:
 
             triangles.append((camera_triangle, file))
 
-    # Order back to front
     ordered = order_triangles(triangles)
+
+    occluded = occlude_triangles(ordered)
         
-    for triangle, file in ordered:
+    for triangle, file in occluded:
         # Transform to osu! coordinates
         osu_triangle = [
             Vector((
