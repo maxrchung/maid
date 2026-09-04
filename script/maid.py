@@ -321,11 +321,6 @@ while frame <= frame_end:
 
     frame += 1
 
-
-# render_triangle(storyboard, (Vector((0, 0)), Vector((100, -50)), Vector((400, 100))))
-# render_triangle(storyboard, (Vector((400, 400)), Vector((0, 200)), Vector((600, 600))))
-# render_triangle(storyboard, (Vector((80, 300)), Vector((55, 200)), Vector((50, 300))))
-
 storyboard.write()
 
 print('Done')
