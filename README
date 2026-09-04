@@ -1,0 +1,10 @@
+# maid
+
+Running script:
+
+1. Install "Blender Development" VS Code extension.
+2. Run "Blender: Start" command in VS Code. This launches a special Blender instance.
+3. Open a Blender project.
+4. Model and animate. One note: I get color by `material.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value`.
+5. Run "Blender: Run Script" command in VS Code. Alternatively, set up a hotkey (I use Ctrl+Shift+Enter) to run this.
+6. Files will write to `constants.STORYBOARD_FOLDER`, including image and storyboard files.
