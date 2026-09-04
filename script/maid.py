@@ -214,13 +214,14 @@ def occlude_triangles(triangles):
     for triangle in reversed(triangles):
         # Skip triangle if a triangle in front fully covers it
         if any(
-            all(intersect_point_tri(v, occlude[0], occlude[1], occlude[2]) for v in triangle)
+            all(intersect_point_tri(v, occlude[0][0], occlude[0][1], occlude[0][2]) for v in triangle[0])
             for occlude in occluded
         ):
             continue
 
         occluded.append(triangle)
 
+    occluded.reverse()
     return occluded
 
 materials = create_materials()
@@ -304,9 +305,11 @@ while frame <= frame_end:
             triangles.append((camera_triangle, file))
 
     ordered = order_triangles(triangles)
+    print('ordered', len(ordered))
 
     occluded = occlude_triangles(ordered)
-        
+    print('occluded', len(occluded))
+
     for triangle, file in occluded:
         # Transform to osu! coordinates
         osu_triangle = [
