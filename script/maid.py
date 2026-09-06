@@ -27,12 +27,6 @@ from storyboard import Storyboard
 from materials import create_materials
 from render import render_triangle
 
-def has_shared_vertex(a, b):
-    for va in a:
-        for vb in b:
-            if (va - vb).length < constants.EPSILON:
-                return True
-    return False
 
 def ensure_ccw(tri):
     """
@@ -299,13 +293,12 @@ while frame <= frame_end:
         mesh.calc_loop_triangles()
 
         world_matrix = object.matrix_world
-        world_matrix_3x3 = world_matrix.to_3x3()
-        view_matrix = camera.matrix_world.inverted()
+        normal_matrix = world_matrix.to_3x3().inverted_safe().transposed()
 
         for loop_triangle in mesh.loop_triangles:
             # Cull if normal points away from camera
-            world_normal = (world_matrix_3x3 @ loop_triangle.normal).normalized()
-            to_camera = (camera.location - world_matrix @ mesh.vertices[loop_triangle.vertices[0]].co).normalized()
+            world_normal = (normal_matrix @ loop_triangle.normal).normalized()
+            to_camera = (camera_location - world_matrix @ mesh.vertices[loop_triangle.vertices[0]].co).normalized()
             if world_normal.dot(to_camera) <= 0:
                 continue
 
@@ -314,8 +307,8 @@ while frame <= frame_end:
             # Bottom left origin where x and y are 0 to 1
             camera_triangle = [world_to_camera_view(scene, camera, v) for v in world_triangle]
 
-            # Cull if all behind camera
-            if all(v.z <= 0 for v in camera_triangle):
+            # Cull if any vertex is behind camera
+            if any(v.z <= 0 for v in camera_triangle):
                 continue
 
             # Cull if all outside edge
