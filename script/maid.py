@@ -21,7 +21,7 @@ importlib.reload(render)
 
 import bpy
 from mathutils import *
-from mathutils.geometry import intersect_point_tri, intersect_tri_tri_2d
+from mathutils.geometry import intersect_point_tri_2d, intersect_tri_tri_2d
 from bpy_extras.object_utils import world_to_camera_view
 from storyboard import Storyboard
 from materials import create_materials
@@ -104,13 +104,32 @@ def find_intersection_polygon(subject, clip):
 
     return output
 
-# This is a simplified calculation and doesn't get the centroid, which needs
-# to take into account point weight. Not sure if this'll lead to any
-# miscalculations though.
 def find_sample_point(polygon):
-    cx = sum(x for x, y in polygon) / len(polygon)
-    cy = sum(y for x, y in polygon) / len(polygon)
-    return Vector((cx, cy))
+    """
+    Returns the centroid Vector2 of the polygon if it has meaningful area (> 1e-6).
+    Returns None if degenerate, collinear, or edge/vertex-only touching.
+    """
+    n = len(polygon)
+    if n < 3:
+        return None
+
+    area2 = 0.0
+    cx = 0.0
+    cy = 0.0
+    for i in range(n):
+        p1 = polygon[i]
+        p2 = polygon[(i + 1) % n]
+        cross = p1.x * p2.y - p2.x * p1.y
+        area2 += cross
+        cx += (p1.x + p2.x) * cross
+        cy += (p1.y + p2.y) * cross
+
+    area = 0.5 * abs(area2)
+    # Ignore zero-area or sliver intersections (< 0.4 of an 854x480 screen pixel)
+    if area < constants.EPSILON:
+        return None
+
+    return Vector((cx / (3.0 * area2), cy / (3.0 * area2)))
 
 """
 tri: 3 Vector3 (x, y, z) in CCW screen/camera space.
@@ -148,10 +167,6 @@ def order_triangles(triangles):
             if not intersect_tri_tri_2d(a[0].xy, a[1].xy, a[2].xy, b[0].xy, b[1].xy, b[2].xy):
                 continue
 
-            # Maybe this could miss some cases
-            if has_shared_vertex(a, b):
-                continue
-
             a_ccw = ensure_ccw(a)
             b_ccw = ensure_ccw(b)
 
@@ -159,18 +174,21 @@ def order_triangles(triangles):
             b_2d = [Vector((v.x, v.y)) for v in b_ccw]
 
             intersection = find_intersection_polygon(a_2d, b_2d)
-            if len(intersection) < 3:
-                continue  # degenerate/point/edge-only overlap
-
             sample = find_sample_point(intersection)
+            if sample is None:
+                continue  # Degenerate, collinear, or edge/vertex-only touching
 
             a_z = find_barycentric_z(a_ccw, sample)
             b_z = find_barycentric_z(b_ccw, sample)
+            if a_z is None or b_z is None:
+                continue
 
-            if a_z < b_z:
+            if a_z < b_z - constants.EPSILON:
+                # a is closer to camera (front), b is further (back) -> b drawn before a
                 graph[j].append(i)
                 indegree[i] += 1
-            else:
+            elif b_z < a_z - constants.EPSILON:
+                # b is closer to camera (front), a is further (back) -> a drawn before b
                 graph[i].append(j)
                 indegree[j] += 1
 
@@ -212,15 +230,26 @@ def occlude_triangles(triangles):
 
     # Use reversed() to go from front -> back
     for triangle in reversed(triangles):
+        tri_pts = triangle[0]
+
         # Skip triangle if a triangle in front fully covers it
         if any(
-            all(intersect_point_tri(v, occlude[0][0], occlude[0][1], occlude[0][2]) for v in triangle[0])
+            all(
+                intersect_point_tri_2d(
+                    v.xy,
+                    occlude[0][0].xy,
+                    occlude[0][1].xy,
+                    occlude[0][2].xy
+                )
+                for v in tri_pts
+            )
             for occlude in occluded
         ):
             continue
 
         occluded.append(triangle)
 
+    # Make sure to reverse back so that the final list is back -> front for rendering
     occluded.reverse()
     return occluded
 
