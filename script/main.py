@@ -7,10 +7,13 @@ script_dir = os.path.dirname(__file__)
 if script_dir not in sys.path:
     sys.path.append(script_dir)
 
-# Automatically reload any project module from disk
+# Automatically purge cached project modules from sys.modules so fresh imports load
+script_dir_norm = os.path.normcase(os.path.abspath(script_dir))
 for name, module in list(sys.modules.items()):
-    if getattr(module, "__file__", "") and module.__file__.startswith(script_dir):
-        importlib.reload(module)
+    if not name.startswith("<") and name != "__main__":
+        mod_file = getattr(module, "__file__", "") or ""
+        if mod_file and os.path.normcase(os.path.abspath(mod_file)).startswith(script_dir_norm):
+            del sys.modules[name]
 
 import bpy
 from mathutils import Vector
@@ -22,7 +25,6 @@ from render import render_triangles
 materials = create_materials()
 
 storyboard = Storyboard()
-
 sprite = storyboard.sprite('b', Vector((0, 0)))
 sprite.rotate(0, 999999, 0, 0)
 
@@ -44,3 +46,4 @@ while frame <= frame_end:
 storyboard.write()
 
 print('Done')
+

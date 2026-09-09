@@ -287,3 +287,4 @@ def frame_triangles(scene, camera, materials):
     print('occluded', len(occluded))
 
     return occluded
+
