@@ -1,32 +1,8 @@
-import sys
-import os
-
-# Add folder to path so modules can be found. This is pretty stupid and maybe
-# reason enough to look into add-on development instead.
-script_dir = os.path.dirname(__file__)
-if script_dir not in sys.path:
-    sys.path.append(script_dir)
-
-# Force modules to reload and bypass interpreter cache. This is pretty stupid
-# and maybe reason enough to look into add-on development instead.
-import importlib
 import constants
-importlib.reload(constants)
-import materials
-importlib.reload(materials)
-import storyboard
-importlib.reload(storyboard)
-import render
-importlib.reload(render)
-
 import bpy
-from mathutils import *
+from mathutils import Vector
 from mathutils.geometry import intersect_point_tri_2d, intersect_tri_tri_2d
 from bpy_extras.object_utils import world_to_camera_view
-from storyboard import Storyboard
-from materials import create_materials
-from render import render_triangle
-
 
 def ensure_ccw(tri):
     """
@@ -247,29 +223,7 @@ def occlude_triangles(triangles):
     occluded.reverse()
     return occluded
 
-materials = create_materials()
-
-storyboard = Storyboard()
-
-sprite = storyboard.sprite('b', Vector((0, 0)))
-sprite.rotate(0, 999999, 0, 0)
-
-frame = 0
-frame_end = 0
-
-scene = bpy.data.scenes[0]
-camera = scene.camera
-
-while frame <= frame_end:
-    print("Processing", frame)
-    
-    """
-    {
-        points: [Vector, Vector, Vector],
-        material: string
-    }
-    """
-    scene.frame_set(frame)
+def frame_triangles(scene, camera, materials):
     camera_location = camera.matrix_world.translation
 
     objects = []
@@ -332,20 +286,4 @@ while frame <= frame_end:
     occluded = occlude_triangles(ordered)
     print('occluded', len(occluded))
 
-    for triangle, file in occluded:
-        # Transform to osu! coordinates
-        osu_triangle = [
-            Vector((
-                v.x * constants.STORYBOARD_SIZE.x + constants.STORYBOARD_OFFSET.x,
-                (1 - v.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
-            ))
-            for v in triangle
-        ]
-
-        render_triangle(storyboard, osu_triangle, file)
-
-    frame += 1
-
-storyboard.write()
-
-print('Done')
+    return occluded

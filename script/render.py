@@ -52,3 +52,16 @@ def render_triangle(storyboard, T, file):
 
     create_sprite(storyboard, T1, file)
     create_sprite(storyboard, T2, file)
+
+def render_triangles(storyboard, triangles):
+    for triangle, file in triangles:
+        # Transform to osu! coordinates
+        osu_triangle = [
+            Vector((
+                v.x * constants.STORYBOARD_SIZE.x + constants.STORYBOARD_OFFSET.x,
+                (1 - v.y) * constants.STORYBOARD_SIZE.y + constants.STORYBOARD_OFFSET.y
+            ))
+            for v in triangle
+        ]
+
+        render_triangle(storyboard, osu_triangle, file)
