@@ -224,6 +224,7 @@ def occlude_triangles(triangles):
     return occluded
 
 def frame_triangles(scene, camera, materials):
+    depsgraph = bpy.context.evaluated_depsgraph_get()
     camera_location = camera.matrix_world.translation
 
     objects = []
@@ -243,10 +244,11 @@ def frame_triangles(scene, camera, materials):
 
     triangles = []
     for object in objects:
-        mesh = object.data
+        evaluated = object.evaluated_get(depsgraph)
+        mesh = evaluated.to_mesh()
         mesh.calc_loop_triangles()
 
-        world_matrix = object.matrix_world
+        world_matrix = evaluated.matrix_world
         normal_matrix = world_matrix.to_3x3().inverted_safe().transposed()
 
         for loop_triangle in mesh.loop_triangles:
@@ -273,12 +275,14 @@ def frame_triangles(scene, camera, materials):
                 continue
 
             # Get material file
-            material = object.material_slots[loop_triangle.material_index].material
+            material = evaluated.material_slots[loop_triangle.material_index].material
             if not material:
                 continue
             file = materials[material.name]
 
             triangles.append((camera_triangle, file))
+
+        evaluated.to_mesh_clear()
 
     ordered = order_triangles(triangles)
     print('ordered', len(ordered))
