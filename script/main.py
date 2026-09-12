@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 import importlib
 
 # Add folder to path so modules can be found
@@ -22,6 +23,8 @@ from storyboard import Storyboard
 from materials import create_materials
 from frame import frame_triangles
 from render import render_triangles
+
+start = time.perf_counter()
 
 materials = create_materials()
 
@@ -54,4 +57,4 @@ while frame <= constants.FRAME_END:
 storyboard.write()
 
 print('total', total)
-print('Done')
+print(f'elapsed {(time.perf_counter() - start) / 60:.2f}m')
