@@ -189,8 +189,8 @@ def order_triangles(triangles):
                 no_front += 1
                 break
 
-    print(f"cycle: {cycle}")
-    print(f"no_front: {no_front}")
+    print("cycle", cycle)
+    print("no_front", no_front)
 
     return ordered
 

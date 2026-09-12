@@ -16,6 +16,7 @@ for name, module in list(sys.modules.items()):
             del sys.modules[name]
 
 import bpy
+import constants
 from mathutils import Vector
 from storyboard import Storyboard
 from materials import create_materials
@@ -34,16 +35,20 @@ frame_end = 0
 scene = bpy.data.scenes[0]
 camera = scene.camera
 
-while frame <= frame_end:
-    print("Processing", frame)
+rendered = []
+
+while frame <= constants.FRAME_END:
+    print("Frame", frame)
     scene.frame_set(frame)
 
     triangles = frame_triangles(scene, camera, materials)
-    render_triangles(storyboard, triangles)
+    rendered = render_triangles(storyboard, triangles, rendered, frame * constants.FRAME_RATE)
 
-    frame += 1
+    frame += constants.FRAME_STEP
+    print()
+
+# TODO: Variables
 
 storyboard.write()
 
 print('Done')
-

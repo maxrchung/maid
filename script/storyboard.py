@@ -80,6 +80,9 @@ class Storyboard:
 
     return sprite
 
+  def add_sprite(self, sprite):
+    self.sprites.append(sprite)
+
   def write(self):
     with open(constants.STORYBOARD_PATH, "w") as file:
       file.write("[Events]\n")
