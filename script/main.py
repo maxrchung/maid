@@ -36,6 +36,7 @@ scene = bpy.data.scenes[0]
 camera = scene.camera
 
 rendered = []
+total = 0
 
 while frame <= constants.FRAME_END:
     print("Frame", frame)
@@ -43,6 +44,7 @@ while frame <= constants.FRAME_END:
 
     triangles = frame_triangles(scene, camera, materials)
     rendered = render_triangles(storyboard, triangles, rendered, frame * constants.FRAME_RATE)
+    total += len(triangles)
 
     frame += constants.FRAME_STEP
     print()
@@ -51,4 +53,5 @@ while frame <= constants.FRAME_END:
 
 storyboard.write()
 
+print('total', total)
 print('Done')
