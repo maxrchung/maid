@@ -1,5 +1,7 @@
 # maid
 
+This thing still WIP.
+
 Running script:
 
 1. Install "Blender Development" VS Code extension.
