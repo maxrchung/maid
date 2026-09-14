@@ -34,7 +34,7 @@ def create_sprite(T, file, time):
 
     sprite = Sprite(file, A)
     sprite.rotate(time, time + constants.FRAME_TIME, rotate, rotate)
-    sprite.scale(time, time + constants.FRAME_TIME, scale, scale)
+    sprite.scale(time, time, scale, scale)
     return sprite
 
 def render_triangle(T, file, time):
@@ -80,6 +80,8 @@ def render_triangles(storyboard, triangles, previous, time):
         prev.commands[1].start_scale == curr.commands[1].start_scale
         for prev, curr in zip(previous, sprites)
     )
+
+    print('is_previous_match', is_previous_match)
 
     if is_previous_match:
         for prev in previous:

@@ -1,7 +1,6 @@
 import sys
 import os
 import time
-import importlib
 
 # Add folder to path so modules can be found
 script_dir = os.path.dirname(__file__)
@@ -23,8 +22,9 @@ from storyboard import Storyboard
 from materials import create_materials
 from frame import frame_triangles
 from render import render_triangles
+from variables import generate_variables
 
-start = time.perf_counter()
+script_start = time.perf_counter()
 
 materials = create_materials()
 
@@ -33,13 +33,12 @@ sprite = storyboard.sprite('b', Vector((0, 0)))
 sprite.rotate(0, 999999, 0, 0)
 
 frame = 0
-frame_end = 0
 
 scene = bpy.data.scenes[0]
 camera = scene.camera
 
 rendered = []
-total = 0
+total_sprites = 0
 
 while frame <= constants.FRAME_END:
     print("Frame", frame)
@@ -47,14 +46,13 @@ while frame <= constants.FRAME_END:
 
     triangles = frame_triangles(scene, camera, materials)
     rendered = render_triangles(storyboard, triangles, rendered, frame * constants.FRAME_RATE)
-    total += len(triangles)
+    total_sprites += len(rendered)
 
     frame += constants.FRAME_STEP
     print()
 
-# TODO: Variables
+variables = generate_variables(materials, storyboard) if constants.ENABLE_VARIABLES else []
+storyboard.write(variables)
 
-storyboard.write()
-
-print('total', total)
-print(f'elapsed {(time.perf_counter() - start) / 60:.2f}m')
+print('total_sprites', total_sprites)
+print(f'elapsed {(time.perf_counter() - script_start) / 60:.2f}m')
